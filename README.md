@@ -1,11 +1,7 @@
-openmrs-module-basicmodule
+openmrs-module-bbaudit
 ==========================
 
-A demonstration module for new OpenMRS module developers
-
-Description
------------
-This is a very basic module which can be used as a starting point in creating a new module.
+A module created for OpenMRS users to integrate with [Blockbird Data](https://blockbird.ventures/data)
 
 Building from Source
 --------------------
@@ -30,3 +26,10 @@ If uploads are not allowed from the web (changable via a runtime property), you 
 into the ~/.OpenMRS/modules folder.  (Where ~/.OpenMRS is assumed to be the Application 
 Data Directory that the running openmrs is currently using.)  After putting the file in there 
 simply restart OpenMRS/tomcat and the module will be loaded and started.
+
+In your `openmrs-runtime.properties` file, you must create the following variables:
+* `blockbird.url`
+* `blockbird.dbKey`
+* `blockbird.dbSecret`
+
+The details of how to get these variables are available on the [Blockbird Data Documentation](https://documentation.blockbird.ventures/getting-started/adding-a-database) pages.
