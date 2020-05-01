@@ -11,14 +11,14 @@
  *
  * Copyright (C) OpenMRS, LLC.  All Rights Reserved.
  */
-package org.openmrs.module.bbaudit;
+package org.openmrs.module.privataaudit;
 
 import org.openmrs.module.BaseModuleActivator;
 
 /**
  * This class contains the logic that is run every time this module is either started or shutdown
  */
-public class BbAuditActivator extends BaseModuleActivator {
+public class PrivataAuditActivator extends BaseModuleActivator {
 	
 	
 	/**
@@ -26,7 +26,7 @@ public class BbAuditActivator extends BaseModuleActivator {
 	 */
 	@Override
 	public void willStart() {
-		System.out.println("Starting Blockbird Data Audit Log Module...");
+		System.out.println("Starting Privata.ai Audit Log Module...");
 	}
 	
 	/**
@@ -34,7 +34,7 @@ public class BbAuditActivator extends BaseModuleActivator {
 	 */
 	@Override
 	public void started() {
-		System.out.println("Started Blockbird Data Audit Log Module...");
+		System.out.println("Started Privata.ai Audit Log Module...");
 		
 	}
 	
@@ -43,7 +43,7 @@ public class BbAuditActivator extends BaseModuleActivator {
 	 */
 	@Override
 	public void willStop() {
-		System.out.println("Stopping Blockbird Data Audit Log Module...");
+		System.out.println("Stopping Privata.ai Audit Log Module...");
 		
 	}
 	
@@ -52,7 +52,7 @@ public class BbAuditActivator extends BaseModuleActivator {
 	 */
 	@Override
 	public void stopped() {
-		System.out.println("Stopped Blockbird Data Audit Log Module...");
+		System.out.println("Stopped Privata.ai Audit Log Module...");
 		
 	}
 }

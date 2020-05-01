@@ -1,7 +1,7 @@
-openmrs-module-bbaudit
+openmrs-module-privataaudit
 ==========================
 
-A module created for OpenMRS users to integrate with [Blockbird Data](https://blockbird.ventures/data)
+A module created for OpenMRS users to integrate with [Privata.ai](https://privata.ai)
 
 Building from Source
 --------------------
@@ -28,8 +28,8 @@ Data Directory that the running openmrs is currently using.)  After putting the 
 simply restart OpenMRS/tomcat and the module will be loaded and started.
 
 In your `openmrs-runtime.properties` file, you must create the following variables:
-* `blockbird.url`
-* `blockbird.dbKey`
-* `blockbird.dbSecret`
+* `privata.url`
+* `privata.dbKey`
+* `privata.dbSecret`
 
-The details of how to get these variables are available on the [Blockbird Data Documentation](https://documentation.blockbird.ventures/getting-started/adding-a-database) pages.
+The details of how to get these variables are available on the [Privata.ai Documentation](https://documentation.privata.ai/getting-started/adding-a-database) pages.

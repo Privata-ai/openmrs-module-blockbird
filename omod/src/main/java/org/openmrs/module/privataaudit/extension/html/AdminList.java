@@ -11,7 +11,7 @@
  *
  * Copyright (C) OpenMRS, LLC.  All Rights Reserved.
  */
-package org.openmrs.module.bbaudit.extension.html;
+package org.openmrs.module.privataaudit.extension.html;
 
 import java.util.HashMap;
 import java.util.Map;

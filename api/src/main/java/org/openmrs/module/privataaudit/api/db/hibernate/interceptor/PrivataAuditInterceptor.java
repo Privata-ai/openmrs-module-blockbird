@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.bbaudit.api.db.hibernate.interceptor;
+package org.openmrs.module.privataaudit.api.db.hibernate.interceptor;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -26,7 +26,10 @@ import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.springframework.stereotype.Component;
 
-import ventures.blockbird.data.BlockbirdAudit;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import ai.privata.*;
 
 /**
  * This class looks for {@link OpenmrsObject} and {@link Auditable} that are
@@ -41,44 +44,71 @@ import ventures.blockbird.data.BlockbirdAudit;
  *
  * @since 1.9
  */
-@Component("zzz-BbAuditLogInterceptor")
-public class BbAuditInterceptor extends EmptyInterceptor {
-
+@Component("zzz-PrivataAuditLogInterceptor")
+public class PrivataAuditInterceptor extends EmptyInterceptor {
 
 	private static final long serialVersionUID = 1L;
 
-	private BlockbirdAudit bbAudit;
+	private PrivataAudit privataAudit;
 
-	protected BbAuditInterceptor() {
+	protected PrivataAuditInterceptor() {
 		Properties props = Context.getRuntimeProperties();
-		
-		bbAudit = BlockbirdAudit.getInstance(
-			props.getProperty("blockbird.url"), 
-			props.getProperty("blockbird.dbKey"),
-			props.getProperty("blockbird.dbSecret")
-			);
+		this.privataAudit = new PrivataAudit(props.getProperty("privata.url"));
+		try {
+			this.privataAudit.initialize(props.getProperty("privata.dbKey"), props.getProperty("privata.dbSecret"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
-	
 	/**
 	 * This method is only called when inserting new objects.
+	 * 
 	 * @should return true if dateCreated was null
 	 * @should return true if creator was null
 	 * @should return false if dateCreated and creator was not null
 	 * @should be called when saving OpenmrsObject
 	 * @return true if the object got the dateCreated and creator fields set
-	 * @see org.hibernate.EmptyInterceptor#onSave(java.lang.Object, java.io.Serializable,
-	 *      java.lang.Object[], java.lang.String[], org.hibernate.type.Type[])
+	 * @see org.hibernate.EmptyInterceptor#onSave(java.lang.Object,
+	 *      java.io.Serializable, java.lang.Object[], java.lang.String[],
+	 *      org.hibernate.type.Type[])
 	 */
 	@Override
-	public boolean onSave(Object entity, Serializable id, Object[] entityCurrentState, String[] propertyNames, Type[] types) {
-		User AuthenticatedUser = Context.getAuthenticatedUser(); 
+	public boolean onSave(Object entity, Serializable id, Object[] entityCurrentState, String[] propertyNames,
+			Type[] types) {
+		User AuthenticatedUser = Context.getAuthenticatedUser();
 
 		if (AuthenticatedUser != null && !AuthenticatedUser.getAllRoles().isEmpty()) {
 			String auditUser = AuthenticatedUser.getUuid();
-			String auditEntity = entity.getClass().getSimpleName();		
-			this.bbAudit.addQuery(auditUser, AuthenticatedUser.getAllRoles().toString(), auditEntity, propertyNames, "Update", new Date(), 1);
-			this.bbAudit.run();			
+			String auditEntity = entity.getClass().getSimpleName();
+			JsonArray columns = new JsonArray();
+
+			final JsonArray queries = new JsonArray();
+			final JsonObject query = new JsonObject();
+
+			final JsonArray tables = new JsonArray();
+			final JsonObject table = new JsonObject();
+			table.addProperty("table", auditEntity);
+			for (String propertyName : propertyNames) {
+				columns.add(propertyName);
+			}
+			table.add("columns", columns);
+			tables.add(table);
+
+			query.add("tables", tables);
+			query.addProperty("action", "Update");
+			query.addProperty("timestamp", new Date().toString());
+			query.addProperty("user", auditUser);
+			query.addProperty("group", AuthenticatedUser.getAllRoles().toString());
+			query.addProperty("returnedRows", 1);
+
+			queries.add(query);
+			try {
+				this.privataAudit.sendQueries(queries);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+						
 		}	
 		return setCreatorAndDateCreatedIfNull(entity, entityCurrentState, propertyNames);
 	}
@@ -89,10 +119,35 @@ public class BbAuditInterceptor extends EmptyInterceptor {
 		User AuthenticatedUser = Context.getAuthenticatedUser(); 
 		if (AuthenticatedUser != null && !AuthenticatedUser.getAllRoles().isEmpty()) {
 			String auditUser = AuthenticatedUser.getUuid();
-			String auditEntity = entity.getClass().getSimpleName();		
-			this.bbAudit.addQuery(auditUser, AuthenticatedUser.getAllRoles().toString(), auditEntity, propertyNames, "Read", new Date(), 1);
-		}	
+			String auditEntity = entity.getClass().getSimpleName();
+			JsonArray columns = new JsonArray();
 
+			final JsonArray queries = new JsonArray();
+			final JsonObject query = new JsonObject();
+
+			final JsonArray tables = new JsonArray();
+			final JsonObject table = new JsonObject();
+			table.addProperty("table", auditEntity);
+			for (String propertyName : propertyNames) {
+				columns.add(propertyName);
+			}
+			table.add("columns", columns);
+			tables.add(table);
+
+			query.add("tables", tables);
+			query.addProperty("action", "Read");
+			query.addProperty("timestamp", new Date().toString());
+			query.addProperty("user", auditUser);
+			query.addProperty("group", AuthenticatedUser.getAllRoles().toString());
+			query.addProperty("returnedRows", 1);
+
+			queries.add(query);
+			try {
+				this.privataAudit.sendQueries(queries);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}	
+		}
 		return super.onLoad(entity, id, state, propertyNames, types);
 	}
 
@@ -101,12 +156,38 @@ public class BbAuditInterceptor extends EmptyInterceptor {
 
 		User AuthenticatedUser = Context.getAuthenticatedUser(); 
 
-		if (AuthenticatedUser != null  && !AuthenticatedUser.getAllRoles().isEmpty()) {
+		if (AuthenticatedUser != null && !AuthenticatedUser.getAllRoles().isEmpty()) {
 			String auditUser = AuthenticatedUser.getUuid();
-			String auditEntity = entity.getClass().getSimpleName();		
-			this.bbAudit.addQuery(auditUser, AuthenticatedUser.getAllRoles().toString(), auditEntity, propertyNames, "Delete", new Date(), 1);
-		}
+			String auditEntity = entity.getClass().getSimpleName();
+			JsonArray columns = new JsonArray();
 
+			final JsonArray queries = new JsonArray();
+			final JsonObject query = new JsonObject();
+
+			final JsonArray tables = new JsonArray();
+			final JsonObject table = new JsonObject();
+			table.addProperty("table", auditEntity);
+			for (String propertyName : propertyNames) {
+				columns.add(propertyName);
+			}
+			table.add("columns", columns);
+			tables.add(table);
+
+			query.add("tables", tables);
+			query.addProperty("action", "Delete");
+			query.addProperty("timestamp", new Date().toString());
+			query.addProperty("user", auditUser);
+			query.addProperty("group", AuthenticatedUser.getAllRoles().toString());
+			query.addProperty("returnedRows", 1);
+
+			queries.add(query);
+			try {
+				this.privataAudit.sendQueries(queries);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		super.onDelete(entity, id, state, propertyNames, types);
 	}
 	
