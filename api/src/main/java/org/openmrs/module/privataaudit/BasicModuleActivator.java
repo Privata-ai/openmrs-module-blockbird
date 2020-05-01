@@ -11,7 +11,7 @@
  *
  * Copyright (C) OpenMRS, LLC.  All Rights Reserved.
  */
-package org.openmrs.module.bbaudit;
+package org.openmrs.module.privataaudit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
